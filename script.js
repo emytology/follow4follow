@@ -95,10 +95,12 @@ document.addEventListener('DOMContentLoaded', () => {
     followingCount = 0;
     updateStats();
     if (name && name.trim()) {
-      saveScore(name.trim(), finalScore).then(() => {
-        loadHighscores();
-        showScreen(1);
-      }).catch(() => showScreen(1));
+      saveScore(name.trim(), finalScore)
+        .then(() => {
+          loadHighscores();
+          showScreen(1);
+        })
+        .catch(() => showScreen(1));
     } else {
       showScreen(1);
     }
@@ -106,27 +108,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ===== Spiel 1: Follow =====
   const listFollow  = document.getElementById('list-follow');
-  const popupFollow = document.getElementById('limit-popup-follow');
-  const popupClose  = document.getElementById('close-popup-follow');
   let followTimes = [], sinceLastReturn = 0, nextThreshold = getRandomThreshold();
-  let followTimer, followTime = 30;   // 30 Sekunden
+  let followTimer, followTime = 30;
 
   function getRandomThreshold() { return Math.floor(Math.random() * 8) + 7; }
-  function checkRateLimit() {
-    const cutoff = Date.now() - 60000;
-    while (followTimes.length && followTimes[0] < cutoff) followTimes.shift();
-    return followTimes.length >= 40;
-  }
 
   function createFollowButton() {
     const btn = document.createElement('button');
     btn.className = 'follow-button';
     btn.textContent = 'Follow';
     btn.addEventListener('click', () => {
-      if (checkRateLimit()) {
-        popupFollow.classList.remove('hidden');
-        return;
-      }
       const now = btn.classList.toggle('following');
       if (now) {
         followingCount++;
@@ -155,7 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  popupClose.addEventListener('click', () => popupFollow.classList.add('hidden'));
   listFollow.addEventListener('scroll', () => {
     if (listFollow.scrollTop + listFollow.clientHeight >= listFollow.scrollHeight - 50) {
       loadFollowItems();
@@ -169,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
     nextThreshold = getRandomThreshold();
     updateStats();
     listFollow.innerHTML = '';
-    followTime = 30;  // 30 Sekunden
+    followTime = 30;
     document.getElementById('timer-follow').textContent = '00:30';
     clearInterval(followTimer);
     followTimer = setInterval(() => {
@@ -192,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
     '#love', '#happy', '#cute', '#tbt', '#fashion', '#beautiful',
     '#picoftheday', '#nature', '#selfie', '#summer', '#art', '#travel'
   ];
-  let hashtagTimer, hashtagTime = 30;  // 30 Sekunden
+  let hashtagTimer, hashtagTime = 30;
   const hashtagContainer = document.querySelector('#game2-screen .smartphone-container');
 
   function applyHashtagBonus(text) {
@@ -208,15 +198,46 @@ document.addEventListener('DOMContentLoaded', () => {
     const tag = document.createElement('div');
     tag.className = 'hashtag';
     tag.innerText = baseTags[Math.floor(Math.random() * baseTags.length)];
+
+    // Maus-Drag & Touch-Drag kombiniert
     tag.draggable = true;
     tag.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', tag.innerText));
     tag.addEventListener('click', () => applyHashtagBonus(tag.innerText));
-    const W = hashtagContainer.clientWidth - tag.offsetWidth;
-    const H = hashtagContainer.clientHeight - window.innerHeight * 0.2 - tag.offsetHeight;
+
+    let offsetX = 0, offsetY = 0;
+    tag.addEventListener('touchstart', e => {
+      const touch = e.touches[0], rect = tag.getBoundingClientRect();
+      offsetX = touch.pageX - rect.left;
+      offsetY = touch.pageY - rect.top;
+      e.preventDefault();
+    }, { passive: false });
+    tag.addEventListener('touchmove', e => {
+      const touch = e.touches[0];
+      tag.style.left = `${touch.pageX - offsetX}px`;
+      tag.style.top  = `${touch.pageY - offsetY}px`;
+      e.preventDefault();
+    }, { passive: false });
+    tag.addEventListener('touchend', e => {
+      const touch = e.changedTouches[0];
+      // Drop prüfen
+      const dz = caption.getBoundingClientRect();
+      if (
+        touch.pageX >= dz.left && touch.pageX <= dz.right &&
+        touch.pageY >= dz.top  && touch.pageY <= dz.bottom
+      ) {
+        applyHashtagBonus(tag.innerText);
+        tag.remove();
+      }
+    });
+
+    // zufällige Bewegung
     tag.vx = (Math.random() - 0.5) * 4;
     tag.vy = (Math.random() - 0.5) * 4;
+    const W = hashtagContainer.clientWidth - tag.offsetWidth;
+    const H = hashtagContainer.clientHeight - window.innerHeight * 0.2 - tag.offsetHeight;
     tag.style.left = `${Math.random() * W}px`;
     tag.style.top  = `${Math.random() * H}px`;
+
     hashtagContainer.appendChild(tag);
   }
 
@@ -234,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function initHashtagGame() {
+    caption.value = '';               // Textbox leeren
     game2Score = 0;
     updateStats();
     hashtagTime = 30;
@@ -282,24 +304,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isGiveaway) {
       sq.innerHTML = '<span class="giveaway-label">giveaway</span>';
       sq.dataset.ga = '1';
-
       sq.addEventListener('dblclick', () => {
         if (sq.dataset.ga !== '1') return;
-
         game3Score++;
         followersCount++;
         updateStats();
-
         const rect = sq.getBoundingClientRect();
         sq.remove();
-
         const splash = document.createElement('img');
-        splash.src = 'follow2.png';
+        splash.src = 'assets/follow2.png';
         splash.className = 'follow-splash';
         splash.style.left = `${rect.left + rect.width/2}px`;
         splash.style.top  = `${rect.top  + rect.height/2}px`;
         document.body.appendChild(splash);
-
         setTimeout(() => {
           splash.classList.add('fade-out');
           splash.addEventListener('transitionend', () => splash.remove(), { once: true });
@@ -308,8 +325,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     game3Container.appendChild(sq);
+    // leere Kachel langsam ausfaden
     setTimeout(() => {
-      if (sq.parentNode) sq.remove();
+      sq.style.transition = 'opacity 1s';
+      sq.style.opacity = '0';
+      sq.addEventListener('transitionend', () => {
+        if (sq.parentNode) sq.remove();
+      });
     }, 2000);
   }
 
@@ -317,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
     game3Score = 0;
     updateStats();
     game3Container.querySelectorAll('.giveaway-tile').forEach(e => e.remove());
-    let t = 30;  // 30 Sekunden
+    let t = 30;
     document.getElementById('attempts-shell').textContent = '00:30';
     clearInterval(game3TimerInt);
     clearInterval(spawnInt);
