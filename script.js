@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sq.remove();
 
         const splash = document.createElement('img');
-        splash.src = 'assets/follow2.png';
+        splash.src = 'follow2.png';
         splash.className = 'follow-splash';
         splash.style.left = `${rect.left + rect.width/2}px`;
         splash.style.top  = `${rect.top  + rect.height/2}px`;
