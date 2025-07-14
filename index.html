@@ -1,0 +1,90 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Drei Mini-Games</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Start-Screen -->
+  <div id="start-screen" class="screen">
+    <button id="start-button">Start Games</button>
+
+    <h2>Highscores</h2>
+    <table id="highscore-table">
+      <thead>
+        <tr>
+          <th>Platz</th>
+          <th>Name</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Wird dynamisch befüllt -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Spiel 1: Follow-Game -->
+  <div id="game1-screen" class="screen hidden">
+    <div class="smartphone-container">
+      <div id="stats-follow">
+        <div class="stat">
+          <div class="stat-number" id="followers-count-follow">0</div>
+          <div class="stat-label">followers</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number" id="following-count-follow">0</div>
+          <div class="stat-label">following</div>
+        </div>
+      </div>
+      <div id="timer-follow" class="timer">00:45</div>
+      <div id="list-follow"></div>
+      <div id="limit-popup-follow" class="popup-overlay hidden">
+        <div class="popup-content-follow">
+          <h2>Too Many Follows!</h2>
+          <p>You’re following too many users. Please try again later.</p>
+          <button id="close-popup-follow">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spiel 2: Hashtag-Game -->
+  <div id="game2-screen" class="screen hidden">
+    <div class="smartphone-container">
+      <div id="stats-follow">
+        <div class="stat">
+          <div class="stat-number" id="followers-count-follow">0</div>
+          <div class="stat-label">followers</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number" id="following-count-follow">0</div>
+          <div class="stat-label">following</div>
+        </div>
+      </div>
+      <div id="timer-hashtag" class="timer">00:45</div>
+      <textarea id="caption-hashtag" placeholder="Write a caption..."></textarea>
+    </div>
+  </div>
+
+  <!-- Spiel 3: Giveaway-Game -->
+  <div id="game3-screen" class="screen hidden">
+    <div class="smartphone-container">
+      <div id="stats-follow">
+        <div class="stat">
+          <div class="stat-number" id="followers-count-follow">0</div>
+          <div class="stat-label">followers</div>
+        </div>
+      </div>
+      <div id="attempts-shell" class="timer">00:30</div>
+      <!-- Hier erscheinen die Kacheln per JS -->
+    </div>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
