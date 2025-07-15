@@ -47,7 +47,7 @@ html, body {
 
 .main-title {
   position: absolute;
-  top: 10vh;                      /* etwa im oberen Drittel */
+  top: 12vh;                      /* etwa im oberen Drittel */
   left: 50%;
   bottom: 10vh;  
   transform: translateX(-50%);
@@ -63,7 +63,7 @@ html, body {
 #start-button {
   position: absolute;      /* absolut im Container positionieren */
   position: absolute;
-  bottom: 5%;           /* nur 5% Abstand nach unten */
+  bottom: 20%;           /* nur 5% Abstand nach unten */
   left: 50%;
   transform: translateX(-50%);
   padding: 12px 24px;   /* kleineres Padding */
@@ -245,22 +245,25 @@ html, body {
 /* ---------- Spiel 2: Hashtag-Game Styles ---------- */
 /* Textbox nimmt volle Breite, 1/5 Höhe, margin zum Rand */
 #caption-hashtag {
-  position: absolute;
-  bottom: 30px;
-  left: 20px;
-  width: calc(100% - 40px);
-  height: 10vh;
-  font-size: 40px;
-  padding: 20px;
+  position: absolute;      /* raus aus dem normalen Dokumentfluss */
+  top: 50%;                /* vertikal zentrieren */
+  left: 50%;               /* horizontal zentrieren */
+  transform: translate(-50%, -50%);
+  width: 80%;              /* passt dich an */
+  min-height: 10vh;        /* Starthöhe */
+  max-height: 50vh;        /* wächst bis hierhin */
+  overflow-y: auto;        /* bei Bedarf scrollen */
+  padding: 1rem;
+  font-size: 1.2rem;
+  line-height: 1.4;
   border: 2px solid var(--light-gray);
   border-radius: 4px;
   background: #fafafa;
-  resize: none;
-  z-index: 9;
   color: var(--light-gray);
-  box-shadow: 0px 0px 20px 0px var(--light-gray);
-
+  box-shadow: 0 0 10px var(--light-gray);
+  z-index: 100;            /* über allen Hashtags */
 }
+
 
 #caption-hashtag::placeholder {
   color: var(--light-gray);         /* Placeholder-Text ("Write a caption...") */
@@ -321,36 +324,34 @@ html, body {
 
 /* Highscore-Tabelle */
 
-
-
-
+/* Highscore-Tabelle: zentriert, 10 sichtbare Zeilen, Rest scrollbar */
 #highscore-table {
   position: absolute;
-  /* mittig auf der Seite (horizontal & vertikal) */
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   
-  width: 60%;          /* 60% Breite */
-  max-height: 25vh; 
-  overflow-y: auto;      /* scrollbar, wenn Inhalt größer wird */
-
-  table-layout: fixed;   /* feste Spaltenbreiten */
+  width: 55%;           /* gewünschte Breite beibehalten */
   border-collapse: collapse;
+  table-layout: fixed;  /* feste Spaltenbreiten */
 }
 
-/* Header fixieren */
+/* Kopfzeile bleibt sichtbar */
 #highscore-table thead {
   display: table;
   width: 100%;
   table-layout: fixed;
 }
+
+/* Body wird auf Platz für 10 Zeilen begrenzt und scrollbar */
 #highscore-table tbody {
   display: block;
   width: 100%;
+  max-height: calc(10 * 2.5rem); /* Platz für 10 Zeilen (~2.5rem Zeilenhöhe) */
+  overflow-y: auto;              /* nur hier scrollen */
 }
 
-/* Jede Zeile als eigenständige Table für width:fixed */
+/* Zeilen-Fixlayout erhalten */
 #highscore-table thead tr,
 #highscore-table tbody tr {
   display: table;
@@ -358,7 +359,7 @@ html, body {
   table-layout: fixed;
 }
 
-/* Spaltenbreiten: 20% | 60% | 20% */
+/* Spaltenbreiten beibehalten: 20% | 60% | 20% */
 #highscore-table th:nth-child(1),
 #highscore-table td:nth-child(1),
 #highscore-table th:nth-child(3),
@@ -370,23 +371,30 @@ html, body {
   width: 60%;
 }
 
-/* Schrift & Zellen größer */
+/* Kompakte Zellen & Schrift */
 #highscore-table th,
 #highscore-table td {
-  padding: 20px;
-  font-size: 1.6rem;
+  padding: 5px;
+  font-size: 1rem;
+  line-height: 2.5rem;      /* passend zur max-height-Berechnung */
   text-align: center;
   border: 2px solid var(--light-gray);
-  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
   color: var(--light-gray);
+  background: #fff;         /* hebt Zeilen im Scroll hervor */
 }
+
+
+
+
+
 
 
 
 /* Texte in den Giveaway-Kacheln stylen */
 .giveaway-label {
   display: inline-block;
-  font-size: 3rem;           /* gewünschte Schriftgröße */
+  font-size: 2srem;           /* gewünschte Schriftgröße */
   font-weight: bold;         /* fettgedruckt */
   color: var(--light-gray);           /* Beispiel-Pink */
   text-transform: uppercase; /* alles Großbuchstaben */

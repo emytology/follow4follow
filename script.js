@@ -45,7 +45,10 @@ async function saveScore(name, score) {
 async function loadHighscores() {
   const tbody = document.querySelector('#highscore-table tbody');
   tbody.innerHTML = `<tr><td colspan="3">Lade…</td></tr>`;
-  const q = query(scoresCol, orderBy('score', 'desc'), limit(10));
+
+  // Entferne das Limit(10), so dass alle Einträge geladen werden
+  const q = query(scoresCol, orderBy('score', 'desc'));
+
   try {
     const snap = await getDocs(q);
     tbody.innerHTML = '';
@@ -61,9 +64,10 @@ async function loadHighscores() {
     });
   } catch (e) {
     tbody.innerHTML = `<tr><td colspan="3">Fehler beim Laden</td></tr>`;
-    console.error(e);
+    console.error('Fehler beim Laden der Highscores:', e);
   }
 }
+
 
 // Update beider Stats-Leisten
 function updateStats() {
@@ -288,76 +292,104 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ===== Spiel 3: Giveaway =====
-  const game3Container = game3Screen.querySelector('.smartphone-container');
-  let game3TimerInt, spawnInt;
+const game3Container = game3Screen.querySelector('.smartphone-container');
+let game3TimerInt, spawnInt;
 
-  function spawnSquare() {
-    const sq = document.createElement('div');
-    sq.className = 'giveaway-tile';
-    const size = 150;
-    const W = game3Container.clientWidth - size;
-    const H = game3Container.clientHeight - size;
-    sq.style.left = `${Math.random() * W}px`;
-    sq.style.top  = `${Math.random() * H}px`;
+function spawnSquare() {
+  const sq = document.createElement('div');
+  sq.className = 'giveaway-tile';
 
-    const isGiveaway = Math.random() < 0.5;
-    if (isGiveaway) {
-      sq.innerHTML = '<span class="giveaway-label">giveaway</span>';
-      sq.dataset.ga = '1';
-      sq.addEventListener('dblclick', () => {
-        if (sq.dataset.ga !== '1') return;
-        game3Score++;
-        followersCount++;
-        updateStats();
-        const rect = sq.getBoundingClientRect();
-        sq.remove();
-        const splash = document.createElement('img');
-        splash.src = 'assets/follow2.png';
-        splash.className = 'follow-splash';
-        splash.style.left = `${rect.left + rect.width/2}px`;
-        splash.style.top  = `${rect.top  + rect.height/2}px`;
-        document.body.appendChild(splash);
-        setTimeout(() => {
-          splash.classList.add('fade-out');
-          splash.addEventListener('transitionend', () => splash.remove(), { once: true });
-        }, 1000);
-      }, { once: true });
+  // Label mit Pacifico-Font und Glow-Shadow
+  const label = document.createElement('span');
+  label.className = 'giveaway-label';
+  label.textContent = 'giveaway';
+  // setze Pacifico aus CSS-Import
+  label.style.fontFamily = '"Pacifico", Helvetica, sans-serif';
+  label.style.textShadow = '0 0 10px var(--light-gray)';
+
+  // 50% Chance, dass diese Kachel Follower bringt → pink einfärben + Glow
+  if (Math.random() < 0.5) {
+    sq.dataset.ga = '1';
+    label.style.color = 'lightpink';
+    label.style.textShadow = '0 0 8px deeppink, 0 0 16px deeppink';
+  }
+
+  sq.append(label);
+
+  // Zufällige Position innerhalb Container
+  const size = 300;
+  const W = game3Container.clientWidth - size;
+  const H = game3Container.clientHeight - size;
+  sq.style.left = `${Math.random() * W}px`;
+  sq.style.top  = `${Math.random() * H}px`;
+
+  // Klick auf Kachel:
+  sq.addEventListener('click', () => {
+    if (sq.dataset.ga === '1') {
+      // Follower-Kachel: Punkte + Bild anzeigen
+      game3Score++;
+      followersCount++;
+      updateStats();
+      const img = document.createElement('img');
+      img.src = 'follow2.png';
+      img.className = 'follow-splash';
+      // zentriert über Klick-Position
+      const rect = sq.getBoundingClientRect();
+      img.style.left = `${rect.left + rect.width/2}px`;
+      img.style.top  = `${rect.top  + rect.height/2}px`;
+      document.body.appendChild(img);
+      // Fade-Out nach 1s
+      setTimeout(() => {
+        img.classList.add('fade-out');
+        img.addEventListener('transitionend', () => img.remove(), { once: true });
+      }, 1000);
     }
+    // Entferne Kachel sofort
+    sq.remove();
+  }, { once: true });
 
-    game3Container.appendChild(sq);
-    // leere Kachel langsam ausfaden
+  game3Container.appendChild(sq);
+
+  // Non-Follower-Kacheln verschwinden nach 2s
+  if (!sq.dataset.ga) {
     setTimeout(() => {
       sq.style.transition = 'opacity 1s';
       sq.style.opacity = '0';
       sq.addEventListener('transitionend', () => {
         if (sq.parentNode) sq.remove();
-      });
+      }, { once: true });
     }, 2000);
   }
+}
 
-  function initGame3() {
-    game3Score = 0;
-    updateStats();
-    game3Container.querySelectorAll('.giveaway-tile').forEach(e => e.remove());
-    let t = 30;
-    document.getElementById('attempts-shell').textContent = '00:30';
-    clearInterval(game3TimerInt);
-    clearInterval(spawnInt);
+function initGame3() {
+  game3Score = 0;
+  updateStats();
+  game3Container.querySelectorAll('.giveaway-tile').forEach(e => e.remove());
 
-    game3TimerInt = setInterval(() => {
-      t--;
-      const m = String(Math.floor(t / 60)).padStart(2, '0');
-      const s = String(t % 60).padStart(2, '0');
-      document.getElementById('attempts-shell').textContent = `${m}:${s}`;
-      if (t <= 0) {
-        clearInterval(game3TimerInt);
-        clearInterval(spawnInt);
-        promptForNameAndSave(totalScore + game3Score);
-      }
-    }, 1000);
+  let t = 30;
+  document.getElementById('attempts-shell').textContent = '00:30';
+  clearInterval(game3TimerInt);
+  clearInterval(spawnInt);
 
-    spawnInt = setInterval(spawnSquare, 800);
-  }
+  game3TimerInt = setInterval(() => {
+    t--;
+    const m = String(Math.floor(t / 60)).padStart(2, '0');
+    const s = String(t % 60).padStart(2, '0');
+    document.getElementById('attempts-shell').textContent = `${m}:${s}`;
+    if (t <= 0) {
+      clearInterval(game3TimerInt);
+      clearInterval(spawnInt);
+      promptForNameAndSave(totalScore + game3Score);
+    }
+  }, 1000);
+
+  // Spawn alle 400ms
+  spawnInt = setInterval(spawnSquare, 400);
+}
+
+
+
 
   // ===== Sequenzierung =====
   function startGame(n) {
