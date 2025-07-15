@@ -310,7 +310,7 @@ function spawnSquare() {
   // 50% Chance, dass diese Kachel Follower bringt → pink einfärben + Glow
   if (Math.random() < 0.5) {
     sq.dataset.ga = '1';
-    label.style.color = 'lightpink';
+    label.style.color = 'deeppink';
     label.style.textShadow = '0 0 8px deeppink, 0 0 16px deeppink';
   }
 
