@@ -121,7 +121,7 @@ html, body {
     background: #fff;
     border-bottom: 6px solid var(--light-gray);
     padding: 10px 40px 30px;     /* oben 10, unten 30 */
-    min-height: 150px;
+    min-height: 60px;
     z-index: 10;
     color: var(--light-gray);
   }
@@ -158,13 +158,13 @@ html, body {
   
   /* Zahlen und Labels */
   .stat-number {
-    font-size: 50px;
+    font-size: 30px;
     font-weight: bold;
     color: var(--light-gray);
     margin-bottom: -2px;         /* exakt auf der border-bottom */
   }
   .stat-label {
-    font-size: 30px;
+    font-size: 20px;
     text-transform: lowercase;
     color: var(--light-gray);
     margin-top: 4px;
@@ -174,7 +174,7 @@ html, body {
 /* Timer/Versuche-Anzeige */
 .timer {
   position: absolute;
-  top: 50px;
+  top: 20px;
   right: 20px;
   background: #fff;
   padding: 6px 10px;
@@ -201,10 +201,10 @@ html, body {
 /* Follow-Buttons: Verhältnis 3:1, dreimal so groß */
 .follow-button {
   width: 70vw;
-  max-width: 600px;
+  max-width: 400px;
   aspect-ratio: 3 / 1;
   margin: 0 auto;
-  font-size: 110px;
+  font-size: 90px;
   border: 2px solid var(--light-gray);
   box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.4);
   background-color: var(--light-gray);
@@ -334,6 +334,7 @@ html, body {
   width: 55%;           /* gewünschte Breite beibehalten */
   border-collapse: collapse;
   table-layout: fixed;  /* feste Spaltenbreiten */
+  box-shadow: 0 0 10px var(--light-gray);
 }
 
 /* Kopfzeile bleibt sichtbar */
@@ -379,9 +380,10 @@ html, body {
   line-height: 2.5rem;      /* passend zur max-height-Berechnung */
   text-align: center;
   border: 2px solid var(--light-gray);
-  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+
   color: var(--light-gray);
   background: #fff;         /* hebt Zeilen im Scroll hervor */
+  box-shadow: 0 0 10px var(--light-gray);
 }
 
 
@@ -394,7 +396,7 @@ html, body {
 /* Texte in den Giveaway-Kacheln stylen */
 .giveaway-label {
   display: inline-block;
-  font-size: 2srem;           /* gewünschte Schriftgröße */
+  font-size: 3rem;           /* gewünschte Schriftgröße */
   font-weight: bold;         /* fettgedruckt */
   color: var(--light-gray);           /* Beispiel-Pink */
   text-transform: uppercase; /* alles Großbuchstaben */
