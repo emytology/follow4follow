@@ -180,127 +180,150 @@ document.addEventListener('DOMContentLoaded', () => {
     loadFollowItems();
   }
 
-      // ===== Spiel 2: Hashtag =====
-  const baseTags = [
-    '#fun', '#cool', '#wow', '#amazing', '#instagood', '#photooftheday',
-    '#love', '#happy', '#cute', '#tbt', '#fashion', '#beautiful',
-    '#picoftheday', '#nature', '#selfie', '#summer', '#art', '#travel'
-  ];
-  let hashtagTimer, hashtagTime = 30;
-  const hashtagContainer = document.querySelector('#game2-screen .smartphone-container');
+        // ===== Spiel 2: Hashtag =====
+const baseTags = [
+  '#fun', '#cool', '#wow', '#amazing', '#instagood', '#photooftheday',
+  '#love', '#happy', '#cute', '#tbt', '#fashion', '#beautiful',
+  '#picoftheday', '#nature', '#selfie', '#summer', '#art', '#travel'
+];
+let hashtagTimer, hashtagTime = 30;
+const hashtagContainer = document.querySelector('#game2-screen .smartphone-container');
 
-  function applyHashtagBonus(text) {
-    // Text zur Caption hinzufügen
-    caption.value += (caption.value ? ' ' : '') + text;
-    // Punkte und Follower
-    const bonus = Math.floor(Math.random() * 3) + 1;
-    game2Score += bonus;
-    followersCount += bonus;
-    updateStats();
-    // Neue Tags nachladen
-    for (let i = 0; i < 5; i++) createTag();
-  }
+// Bonus anwenden, Caption befüllen und neue Tags nachladen
+function applyHashtagBonus(text) {
+  caption.value += (caption.value ? ' ' : '') + text;
+  const bonus = Math.floor(Math.random() * 3) + 1;
+  game2Score += bonus;
+  followersCount += bonus;
+  updateStats();
+  for (let i = 0; i < 5; i++) createTag();
+}
 
-  function createTag() {
-    const tag = document.createElement('div');
-    tag.className = 'hashtag';
-    tag.innerText = baseTags[Math.floor(Math.random() * baseTags.length)];
+// Ein neues Hashtag-Element erzeugen
+function createTag() {
+  const tag = document.createElement('div');
+  tag.className = 'hashtag';
+  tag.innerText = baseTags[Math.floor(Math.random() * baseTags.length)];
+  tag.style.touchAction = 'none';   // verhindert Skalierung bei Touch
+  tag.style.position = 'absolute';
+  tag.style.zIndex = '8';
 
-    // Verhindert unerwünschtes Skalieren auf Mobilgeräten
-    tag.style.touchAction = 'none';
-    tag.style.position = 'absolute';
-    tag.style.zIndex = '8';
+  // Drag & Drop (Maus)
+  tag.draggable = true;
+  tag.addEventListener('dragstart', e => {
+    e.dataTransfer.setData('text/plain', tag.innerText);
+    // Ghost-Clone für konstante Größe
+    const ghost = tag.cloneNode(true);
+    ghost.style.position = 'absolute';
+    ghost.style.top = '-9999px';
+    ghost.style.left = '-9999px';
+    document.body.appendChild(ghost);
+    e.dataTransfer.setDragImage(ghost, ghost.offsetWidth/2, ghost.offsetHeight/2);
+    setTimeout(() => document.body.removeChild(ghost), 0);
+    tag.style.zIndex = 1000;
+  });
+  tag.addEventListener('dragend', () => {
+    tag.style.zIndex = 8;
+  });
 
-    // Drag & Drop konfigurieren
-    tag.draggable = true;
-    tag.addEventListener('dragstart', e => {
-      // Text als Payload
-      e.dataTransfer.setData('text/plain', tag.innerText);
+  // Touch-Drag
+  let offsetX=0, offsetY=0;
+  tag.addEventListener('touchstart', e => {
+    const t = e.touches[0], r = tag.getBoundingClientRect();
+    offsetX = t.clientX - r.left;
+    offsetY = t.clientY - r.top;
+    tag.style.zIndex = 1000;
+    e.preventDefault();
+  }, { passive: false });
+  tag.addEventListener('touchmove', e => {
+    const t = e.touches[0];
+    tag.style.left = `${t.clientX - offsetX}px`;
+    tag.style.top  = `${t.clientY - offsetY}px`;
+    e.preventDefault();
+  }, { passive: false });
+  tag.addEventListener('touchend', e => {
+    const t = e.changedTouches[0];
+    const dz = caption.getBoundingClientRect();
+    if (
+      t.clientX >= dz.left && t.clientX <= dz.right &&
+      t.clientY >= dz.top  && t.clientY <= dz.bottom
+    ) {
+      applyHashtagBonus(tag.innerText);
+      tag.remove();
+    }
+    tag.style.zIndex = 8;
+    e.preventDefault();
+  }, { passive: false });
 
-      // Ghost-Clone erzeugen, um original Größe beizubehalten
-      const ghost = tag.cloneNode(true);
-      ghost.style.position = 'absolute';
-      ghost.style.top = '-1000px';
-      ghost.style.left = '-1000px';
-      document.body.appendChild(ghost);
-      e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, ghost.offsetHeight / 2);
-      // Ghost nach kurzem Moment wieder entfernen
-      setTimeout(() => document.body.removeChild(ghost), 0);
+  // Klick-Fallback
+  tag.addEventListener('click', () => applyHashtagBonus(tag.innerText));
 
-      // während des Draggens nach vorne holen
-      tag.style.zIndex = '1000';
-    });
-    tag.addEventListener('dragend', () => {
-      // Z-Index zurücksetzen
-      tag.style.zIndex = '8';
-    });
+  // Startposition und zufällige Bewegung
+  const W = hashtagContainer.clientWidth - tag.offsetWidth;
+  const H = hashtagContainer.clientHeight - tag.offsetHeight;
+  tag.style.left = `${Math.random() * W}px`;
+  tag.style.top  = `${Math.random() * H}px`;
+  tag.vx = (Math.random() - 0.5) * 4;
+  tag.vy = (Math.random() - 0.5) * 4;
 
-    // Klick-Fallback
-    tag.addEventListener('click', () => applyHashtagBonus(tag.innerText));
+  hashtagContainer.appendChild(tag);
+}
 
-    // Startposition und Filmbewegung
-    const W = hashtagContainer.clientWidth - tag.offsetWidth;
-    const H = hashtagContainer.clientHeight - tag.offsetHeight;
-    tag.style.left = `${Math.random() * W}px`;
-    tag.style.top  = `${Math.random() * H}px`;
-    tag.vx = (Math.random() - 0.5) * 4;
-    tag.vy = (Math.random() - 0.5) * 4;
+// Animation der Hashtags
+function moveHashtags() {
+  document.querySelectorAll('.hashtag').forEach(tag => {
+    let x = parseFloat(tag.style.left) + tag.vx;
+    let y = parseFloat(tag.style.top)  + tag.vy;
+    const maxW = hashtagContainer.clientWidth - tag.offsetWidth;
+    const maxH = hashtagContainer.clientHeight - tag.offsetHeight;
+    if (x < 0 || x > maxW) tag.vx *= -1;
+    if (y < 0 || y > maxH) tag.vy *= -1;
+    tag.style.left = `${Math.max(0, Math.min(maxW, x))}px`;
+    tag.style.top  = `${Math.max(0, Math.min(maxH, y))}px`;
+  });
+}
 
-    hashtagContainer.appendChild(tag);
-  }
+// Initialisierung des Hashtag-Spiels
+function initHashtagGame() {
+  caption.value = '';
+  game2Score = 0;
+  updateStats();
+  hashtagTime = 30;
+  document.getElementById('timer-hashtag').textContent = '00:30';
+  clearInterval(hashtagTimer);
+  clearInterval(window.hashtagInterval);
 
-  function moveHashtags() {
-    document.querySelectorAll('.hashtag').forEach(tag => {
-      let x = parseFloat(tag.style.left) + tag.vx;
-      let y = parseFloat(tag.style.top)  + tag.vy;
-      const maxW = hashtagContainer.clientWidth - tag.offsetWidth;
-      const maxH = hashtagContainer.clientHeight - tag.offsetHeight;
-      if (x < 0 || x > maxW) tag.vx *= -1;
-      if (y < 0 || y > maxH) tag.vy *= -1;
-      tag.style.left = `${Math.max(0, Math.min(maxW, x))}px`;
-      tag.style.top  = `${Math.max(0, Math.min(maxH, y))}px`;
-    });
-  }
+  // Alte Tags entfernen
+  hashtagContainer.querySelectorAll('.hashtag').forEach(el => el.remove());
+  // Neue Tags erzeugen
+  for (let i = 0; i < 12; i++) createTag();
 
-  function initHashtagGame() {
-    caption.value = '';        // Caption leeren
-    game2Score = 0;
-    updateStats();
+  // Bewegungs-Loop starten
+  window.hashtagInterval = setInterval(moveHashtags, 40);
 
-    hashtagTime = 30;
-    document.getElementById('timer-hashtag').textContent = '00:30';
-    clearInterval(hashtagTimer);
-    clearInterval(window.hashtagInterval);
+  // Caption-Box als Drop-Ziel
+  caption.addEventListener('dragover', e => e.preventDefault());
+  caption.addEventListener('drop', e => {
+    e.preventDefault();
+    applyHashtagBonus(e.dataTransfer.getData('text/plain'));
+  });
 
-    // Alte Tags wegräumen
-    hashtagContainer.querySelectorAll('.hashtag').forEach(el => el.remove());
-    // Neue erzeugen
-    for (let i = 0; i < 12; i++) createTag();
+  // Countdown starten
+  hashtagTimer = setInterval(() => {
+    hashtagTime--;
+    const m = String(Math.floor(hashtagTime / 60)).padStart(2, '0');
+    const s = String(hashtagTime % 60).padStart(2, '0');
+    document.getElementById('timer-hashtag').textContent = `${m}:${s}`;
+    if (hashtagTime <= 0) {
+      clearInterval(hashtagTimer);
+      clearInterval(window.hashtagInterval);
+      totalScore += game2Score;
+      startGame(3);
+    }
+  }, 1000);
+}
 
-    // Bewegung starten
-    window.hashtagInterval = setInterval(moveHashtags, 40);
 
-    // Caption als Drop-Ziel
-    caption.addEventListener('dragover', e => e.preventDefault());
-    caption.addEventListener('drop', e => {
-      e.preventDefault();
-      applyHashtagBonus(e.dataTransfer.getData('text/plain'));
-    });
-
-    // Timer-Countdown
-    hashtagTimer = setInterval(() => {
-      hashtagTime--;
-      const m = String(Math.floor(hashtagTime / 60)).padStart(2, '0');
-      const s = String(hashtagTime % 60).padStart(2, '0');
-      document.getElementById('timer-hashtag').textContent = `${m}:${s}`;
-      if (hashtagTime <= 0) {
-        clearInterval(hashtagTimer);
-        clearInterval(window.hashtagInterval);
-        totalScore += game2Score;
-        startGame(3);
-      }
-    }, 1000);
-  }
 
   
 
