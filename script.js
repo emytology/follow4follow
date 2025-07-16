@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadFollowItems();
   }
 
-  // ===== Spiel 2: Hashtag =====
+      // ===== Spiel 2: Hashtag =====
   const baseTags = [
     '#fun', '#cool', '#wow', '#amazing', '#instagood', '#photooftheday',
     '#love', '#happy', '#cute', '#tbt', '#fashion', '#beautiful',
@@ -190,11 +190,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const hashtagContainer = document.querySelector('#game2-screen .smartphone-container');
 
   function applyHashtagBonus(text) {
+    // Text zur Caption hinzufügen
     caption.value += (caption.value ? ' ' : '') + text;
+    // Punkte und Follower
     const bonus = Math.floor(Math.random() * 3) + 1;
     game2Score += bonus;
     followersCount += bonus;
     updateStats();
+    // Neue Tags nachladen
     for (let i = 0; i < 5; i++) createTag();
   }
 
@@ -203,44 +206,45 @@ document.addEventListener('DOMContentLoaded', () => {
     tag.className = 'hashtag';
     tag.innerText = baseTags[Math.floor(Math.random() * baseTags.length)];
 
-    // Maus-Drag & Touch-Drag kombiniert
-    tag.draggable = true;
-    tag.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', tag.innerText));
-    tag.addEventListener('click', () => applyHashtagBonus(tag.innerText));
+    // Verhindert unerwünschtes Skalieren auf Mobilgeräten
+    tag.style.touchAction = 'none';
+    tag.style.position = 'absolute';
+    tag.style.zIndex = '8';
 
-    let offsetX = 0, offsetY = 0;
-    tag.addEventListener('touchstart', e => {
-      const touch = e.touches[0], rect = tag.getBoundingClientRect();
-      offsetX = touch.pageX - rect.left;
-      offsetY = touch.pageY - rect.top;
-      e.preventDefault();
-    }, { passive: false });
-    tag.addEventListener('touchmove', e => {
-      const touch = e.touches[0];
-      tag.style.left = `${touch.pageX - offsetX}px`;
-      tag.style.top  = `${touch.pageY - offsetY}px`;
-      e.preventDefault();
-    }, { passive: false });
-    tag.addEventListener('touchend', e => {
-      const touch = e.changedTouches[0];
-      // Drop prüfen
-      const dz = caption.getBoundingClientRect();
-      if (
-        touch.pageX >= dz.left && touch.pageX <= dz.right &&
-        touch.pageY >= dz.top  && touch.pageY <= dz.bottom
-      ) {
-        applyHashtagBonus(tag.innerText);
-        tag.remove();
-      }
+    // Drag & Drop konfigurieren
+    tag.draggable = true;
+    tag.addEventListener('dragstart', e => {
+      // Text als Payload
+      e.dataTransfer.setData('text/plain', tag.innerText);
+
+      // Ghost-Clone erzeugen, um original Größe beizubehalten
+      const ghost = tag.cloneNode(true);
+      ghost.style.position = 'absolute';
+      ghost.style.top = '-1000px';
+      ghost.style.left = '-1000px';
+      document.body.appendChild(ghost);
+      e.dataTransfer.setDragImage(ghost, ghost.offsetWidth / 2, ghost.offsetHeight / 2);
+      // Ghost nach kurzem Moment wieder entfernen
+      setTimeout(() => document.body.removeChild(ghost), 0);
+
+      // während des Draggens nach vorne holen
+      tag.style.zIndex = '1000';
+    });
+    tag.addEventListener('dragend', () => {
+      // Z-Index zurücksetzen
+      tag.style.zIndex = '8';
     });
 
-    // zufällige Bewegung
-    tag.vx = (Math.random() - 0.5) * 4;
-    tag.vy = (Math.random() - 0.5) * 4;
+    // Klick-Fallback
+    tag.addEventListener('click', () => applyHashtagBonus(tag.innerText));
+
+    // Startposition und Filmbewegung
     const W = hashtagContainer.clientWidth - tag.offsetWidth;
-    const H = hashtagContainer.clientHeight - window.innerHeight * 0.2 - tag.offsetHeight;
+    const H = hashtagContainer.clientHeight - tag.offsetHeight;
     tag.style.left = `${Math.random() * W}px`;
     tag.style.top  = `${Math.random() * H}px`;
+    tag.vx = (Math.random() - 0.5) * 4;
+    tag.vy = (Math.random() - 0.5) * 4;
 
     hashtagContainer.appendChild(tag);
   }
@@ -250,7 +254,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let x = parseFloat(tag.style.left) + tag.vx;
       let y = parseFloat(tag.style.top)  + tag.vy;
       const maxW = hashtagContainer.clientWidth - tag.offsetWidth;
-      const maxH = hashtagContainer.clientHeight - window.innerHeight * 0.2 - tag.offsetHeight;
+      const maxH = hashtagContainer.clientHeight - tag.offsetHeight;
       if (x < 0 || x > maxW) tag.vx *= -1;
       if (y < 0 || y > maxH) tag.vy *= -1;
       tag.style.left = `${Math.max(0, Math.min(maxW, x))}px`;
@@ -259,24 +263,31 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function initHashtagGame() {
-    caption.value = '';               // Textbox leeren
+    caption.value = '';        // Caption leeren
     game2Score = 0;
     updateStats();
+
     hashtagTime = 30;
     document.getElementById('timer-hashtag').textContent = '00:30';
     clearInterval(hashtagTimer);
     clearInterval(window.hashtagInterval);
 
+    // Alte Tags wegräumen
     hashtagContainer.querySelectorAll('.hashtag').forEach(el => el.remove());
+    // Neue erzeugen
     for (let i = 0; i < 12; i++) createTag();
+
+    // Bewegung starten
     window.hashtagInterval = setInterval(moveHashtags, 40);
 
+    // Caption als Drop-Ziel
     caption.addEventListener('dragover', e => e.preventDefault());
     caption.addEventListener('drop', e => {
       e.preventDefault();
       applyHashtagBonus(e.dataTransfer.getData('text/plain'));
     });
 
+    // Timer-Countdown
     hashtagTimer = setInterval(() => {
       hashtagTime--;
       const m = String(Math.floor(hashtagTime / 60)).padStart(2, '0');
@@ -290,6 +301,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }, 1000);
   }
+
+  
 
   // ===== Spiel 3: Giveaway =====
 const game3Container = game3Screen.querySelector('.smartphone-container');
